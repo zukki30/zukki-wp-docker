@@ -1,0 +1,30 @@
+# WordPress Docker環境用 .gitignore
+
+# 環境変数ファイル（機密情報を含む）
+.env
+
+# WordPressコンテンツ（ローカルで生成されるファイル）
+wordpress/wp-content/
+
+# データベースボリューム（Dockerで管理）
+mysql/
+mariadb/
+
+# ログファイル
+*.log
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+docker-compose.override.yml
