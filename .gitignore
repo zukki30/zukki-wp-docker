@@ -3,8 +3,25 @@
 # 環境変数ファイル（機密情報を含む）
 .env
 
-# WordPressコンテンツ（ローカルで生成されるファイル）
-wordpress/wp-content/
+# WordPressコンテンツ（選択的に管理）
+# アップロードファイルは除外
+wordpress/wp-content/uploads/
+
+# キャッシュファイルは除外
+wordpress/wp-content/cache/
+wordpress/wp-content/upgrade/
+
+# バックアップファイルは除外
+wordpress/wp-content/backup*/
+wordpress/wp-content/backups/
+
+# wp-content直下の一時ファイル
+wordpress/wp-content/*.log
+wordpress/wp-content/*.sql
+wordpress/wp-content/*.gz
+
+# plugins/ と themes/ は管理対象
+# （ただし、デフォルトテーマとよく使う公式プラグインは除外することを推奨）
 
 # データベースボリューム（Dockerで管理）
 mysql/
