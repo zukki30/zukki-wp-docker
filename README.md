@@ -8,7 +8,7 @@ Docker Composeを使用したWordPress開発環境です。Webサーバー（Apa
 - ✅ **バージョン管理**: WordPress、PHP、データベースのバージョンを自由に指定可能
 - ✅ **データ永続化**: wp-contentとデータベースデータを永続化
 - ✅ **開発最適化**: デバッグモード、エラーログ出力
-- ✅ **管理ツール**: phpMyAdmin（オプション）
+- ✅ **管理ツール**: phpMyAdmin、WP-CLI（オプション）
 - ✅ **簡単セットアップ**: .envファイルで一元管理
 
 ## 必須要件
@@ -58,11 +58,21 @@ docker-compose --profile nginx up -d
 #### パターン3: phpMyAdminを含める場合
 
 ```bash
-# .envファイルでPHPMYADMIN_ENABLED=trueに設定
+# phpMyAdminを起動
 docker-compose --profile phpmyadmin up -d
 
 # NginxとphpMyAdmin両方を使う場合
 docker-compose --profile nginx --profile phpmyadmin up -d
+```
+
+#### パターン4: WP-CLIを含める場合
+
+```bash
+# WP-CLIを起動（WordPressコマンドラインツール）
+docker-compose --profile wpcli up -d
+
+# すべての管理ツールを使う場合
+docker-compose --profile phpmyadmin --profile wpcli up -d
 ```
 
 ### 4. WordPressへアクセス
@@ -163,6 +173,7 @@ docker-compose --profile nginx up -d
 | `PHPMYADMIN_VERSION` | phpMyAdminバージョン | `latest` | `5.2` |
 | `PHPMYADMIN_PORT` | アクセスポート | `8081` | `8082` |
 
+
 ## よく使うコマンド
 
 ### コンテナの起動
@@ -177,8 +188,11 @@ docker-compose --profile nginx up -d
 # phpMyAdminプロファイル付き起動
 docker-compose --profile phpmyadmin up -d
 
-# 両方のプロファイル付き起動
-docker-compose --profile nginx --profile phpmyadmin up -d
+# WP-CLIプロファイル付き起動
+docker-compose --profile wpcli up -d
+
+# 複数のプロファイル付き起動
+docker-compose --profile nginx --profile phpmyadmin --profile wpcli up -d
 ```
 
 ### コンテナの停止
@@ -265,6 +279,139 @@ docker-compose down -v
 # wp-contentも削除する場合
 rm -rf wordpress/wp-content/*
 ```
+
+## WP-CLIの使用方法
+
+WP-CLIは、WordPressをコマンドラインから管理できる公式ツールです。データベースの検索・置換、プラグイン管理、メンテナンスなど、様々な操作が可能です。
+
+### 基本的な使用方法
+
+#### 1. WP-CLIコンテナを起動
+
+```bash
+docker-compose --profile wpcli up -d
+```
+
+#### 2. WP-CLIコマンドを実行
+
+基本的なコマンド形式：
+
+```bash
+docker-compose exec wpcli wp <コマンド> --allow-root
+```
+
+### よく使うコマンド例
+
+#### データベース内の文字列を検索・置換
+
+ドメイン変更やURL変更に便利です：
+
+```bash
+# ドライラン（実際には変更せず、変更内容を確認）
+docker-compose exec wpcli wp search-replace 'http://localhost:8080' 'https://example.com' --dry-run --allow-root
+
+# 実際に置換を実行
+docker-compose exec wpcli wp search-replace 'http://localhost:8080' 'https://example.com' --allow-root
+
+# GUIDカラムをスキップして置換（推奨）
+docker-compose exec wpcli wp search-replace 'http://localhost:8080' 'https://example.com' --skip-columns=guid --allow-root
+```
+
+#### プラグイン管理
+
+```bash
+# インストール済みプラグイン一覧
+docker-compose exec wpcli wp plugin list --allow-root
+
+# プラグインのインストール
+docker-compose exec wpcli wp plugin install akismet --allow-root
+
+# プラグインの有効化
+docker-compose exec wpcli wp plugin activate akismet --allow-root
+
+# プラグインの無効化
+docker-compose exec wpcli wp plugin deactivate akismet --allow-root
+
+# プラグインの更新
+docker-compose exec wpcli wp plugin update akismet --allow-root
+
+# すべてのプラグインを更新
+docker-compose exec wpcli wp plugin update --all --allow-root
+```
+
+#### テーマ管理
+
+```bash
+# インストール済みテーマ一覧
+docker-compose exec wpcli wp theme list --allow-root
+
+# テーマのインストール
+docker-compose exec wpcli wp theme install twentytwentyfour --allow-root
+
+# テーマの有効化
+docker-compose exec wpcli wp theme activate twentytwentyfour --allow-root
+```
+
+#### データベース操作
+
+```bash
+# データベースのエクスポート
+docker-compose exec wpcli wp db export --allow-root
+
+# データベースの最適化
+docker-compose exec wpcli wp db optimize --allow-root
+
+# データベースの修復
+docker-compose exec wpcli wp db repair --allow-root
+```
+
+#### キャッシュクリア
+
+```bash
+# キャッシュをクリア
+docker-compose exec wpcli wp cache flush --allow-root
+
+# Transientをクリア
+docker-compose exec wpcli wp transient delete --all --allow-root
+```
+
+#### ユーザー管理
+
+```bash
+# ユーザー一覧
+docker-compose exec wpcli wp user list --allow-root
+
+# 管理者ユーザーを作成
+docker-compose exec wpcli wp user create newadmin admin@example.com --role=administrator --allow-root
+
+# ユーザーのパスワード変更
+docker-compose exec wpcli wp user update 1 --user_pass=newpassword --allow-root
+```
+
+#### 投稿・固定ページ管理
+
+```bash
+# 投稿一覧
+docker-compose exec wpcli wp post list --allow-root
+
+# 固定ページ一覧
+docker-compose exec wpcli wp post list --post_type=page --allow-root
+
+# 投稿を作成
+docker-compose exec wpcli wp post create --post_title="新しい投稿" --post_content="コンテンツ" --post_status=publish --allow-root
+```
+
+### 注意事項
+
+- `--allow-root` フラグは、rootユーザーとしてコマンドを実行する際に必要です
+- `--dry-run` フラグを使用すると、実際には変更せずに結果を確認できます（search-replaceなど）
+- データベースを変更する操作の前には、必ずバックアップを取ってください
+- 使用後にコンテナを停止する場合: `docker-compose --profile wpcli down`
+
+### さらに詳しい情報
+
+WP-CLIの全コマンドリストと詳細は、公式ドキュメントを参照してください：
+https://developer.wordpress.org/cli/commands/
 
 ## バージョンアップ
 
@@ -439,6 +586,7 @@ docker-compose logs nginx
 - 強力なパスワードの使用
 - データベースのrootアクセス制限
 - phpMyAdminの無効化または適切な認証設定
+- WP-CLIコンテナの無効化（本番環境では必要時のみ起動）
 - ファイアウォールの設定
 - 定期的なバックアップ
 
@@ -450,6 +598,8 @@ docker-compose logs nginx
 
 - [WordPress公式サイト](https://wordpress.org/)
 - [WordPress Dockerイメージ](https://hub.docker.com/_/wordpress)
+- [WP-CLI公式サイト](https://wp-cli.org/)
+- [WP-CLIコマンドリファレンス](https://developer.wordpress.org/cli/commands/)
 - [MySQL Dockerイメージ](https://hub.docker.com/_/mysql)
 - [MariaDB Dockerイメージ](https://hub.docker.com/_/mariadb)
 - [phpMyAdmin Dockerイメージ](https://hub.docker.com/_/phpmyadmin)

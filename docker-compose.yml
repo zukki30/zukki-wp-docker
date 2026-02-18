@@ -93,6 +93,29 @@ services:
     networks:
       - wp-network
 
+  # WP-CLIサービス（WordPressコマンドラインツール）
+  wpcli:
+    image: wordpress:cli-php${PHP_VERSION:-8.2}
+    container_name: wp-cli
+    user: "33:33"  # www-dataユーザーとして実行（Debian版WordPressと互換性を保つ）
+    profiles:
+      - wpcli
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE:-wordpress}
+      WORDPRESS_DB_USER: ${MYSQL_USER:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD:-wordpress_password}
+    volumes:
+      # WordPressファイルへのアクセス（wordpressコンテナと共有）
+      - ./wordpress/wp-content:/var/www/html/wp-content
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - wp-network
+    # コマンド実行用のため、コンテナは即座に終了
+    command: tail -f /dev/null
+
 # ネットワーク定義
 networks:
   wp-network:
