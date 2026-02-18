@@ -403,6 +403,7 @@ docker-compose exec wpcli wp post create --post_title="新しい投稿" --post_c
 
 ### 注意事項
 
+- ⚠️ **WP-CLIを使用する前に、WordPressの初期セットアップを完了してください**（http://localhost:8080 にアクセスしてインストール）
 - `--allow-root` フラグは、rootユーザーとしてコマンドを実行する際に必要です
 - `--dry-run` フラグを使用すると、実際には変更せずに結果を確認できます（search-replaceなど）
 - データベースを変更する操作の前には、必ずバックアップを取ってください

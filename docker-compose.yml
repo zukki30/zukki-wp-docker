@@ -23,6 +23,8 @@ services:
         define('WP_MEMORY_LIMIT', '256M');
         define('WP_MAX_MEMORY_LIMIT', '256M');
     volumes:
+      # WordPressファイル全体を名前付きボリュームで共有（WP-CLIと共有）
+      - wordpress-data:/var/www/html
       # wp-contentをホストにマウント（プラグイン・テーマ・アップロードファイルの永続化）
       - ./wordpress/wp-content:/var/www/html/wp-content
     depends_on:
@@ -106,14 +108,18 @@ services:
       WORDPRESS_DB_USER: ${MYSQL_USER:-wordpress}
       WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD:-wordpress_password}
     volumes:
-      # WordPressファイルへのアクセス（wordpressコンテナと共有）
+      # WordPressファイル全体を共有（wordpressコンテナと同じボリューム）
+      - wordpress-data:/var/www/html
+      # wp-contentをホストにマウント（wordpressコンテナと共有）
       - ./wordpress/wp-content:/var/www/html/wp-content
     depends_on:
+      wordpress:
+        condition: service_started
       db:
         condition: service_healthy
     networks:
       - wp-network
-    # コマンド実行用のため、コンテナは即座に終了
+    # コマンド実行用のため、コンテナを起動し続ける
     command: tail -f /dev/null
 
 # ネットワーク定義
@@ -124,4 +130,6 @@ networks:
 # ボリューム定義
 volumes:
   db-data:
+    driver: local
+  wordpress-data:
     driver: local
