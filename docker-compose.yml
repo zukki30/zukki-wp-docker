@@ -1,7 +1,7 @@
 services:
   # WordPressサービス
   wordpress:
-    image: wordpress:${PHP_VERSION:-8.2}-${WP_SERVER:-apache}
+    image: wordpress:php${PHP_VERSION:-8.2}-${WP_SERVER:-apache}
     container_name: wp-wordpress
     restart: unless-stopped
     ports:
